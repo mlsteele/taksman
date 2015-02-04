@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 """ Assignment management tool for school.
 Usage:
-  taksman.py (-h | --help)
-  taksman.py add <entry>
-  taksman.py done <entry>
-  taksman.py course
-  taksman.py date
-  taksman.py debug
+  taksman (-h | --help)
+  taksman add <entry>
+  taksman done <entry>
+  taksman all
+  taksman course
+  taksman date
+  taksman debug
 
 Examples:
-  taksman.py add 033-reading   create a new task entry
-  taksman.py done <entry>      mark an entry as done
+  taksman add 033-reading   create a new task entry
+  taksman done <entry>      mark an entry as done
+  taksman all               list all tasks entries
 
 Options:
   -h, --help
@@ -23,6 +25,13 @@ import subprocess
 import re
 from pprint import pprint
 from docopt import docopt
+
+def show_all(tasks):
+    names = sorted(tasks.keys())
+
+    print "All tasks:"
+    for name in names:
+        print "> %s" % name
 
 def show_by_course(tasks):
     courses = set(tasks[name].get('course') for name in tasks)
@@ -114,6 +123,8 @@ if __name__ == "__main__":
         newpath = os.path.join(db_root, 'done', name)
         os.rename(filepath, newpath)
         print "%s archived to %s" % (name, newpath)
+    elif arguments['all']:
+        show_all(tasks)
     elif arguments['course']:
         show_by_course(tasks)
     elif arguments['date']:
