@@ -160,7 +160,7 @@ def format_date(date):
         return "%s (%s)" % (day_str, rel)
 
 if __name__ == "__main__":
-    db_root = "tasks"
+    db_root = os.path.expanduser("~/.taksman")
     ensure_db(db_root)
 
     arguments = docopt(__doc__)
