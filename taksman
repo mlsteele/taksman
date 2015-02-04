@@ -3,6 +3,7 @@
 Usage:
   taksman (-h | --help)
   taksman add <entry>
+  taksman edit <entry>
   taksman done <entry>
   taksman all
   taksman course
@@ -24,8 +25,16 @@ import os
 import errno
 import subprocess
 import re
+import dateutil.parser
+import datetime
+import dateutil.relativedelta
 from pprint import pprint
 from docopt import docopt
+import humanize
+
+class TaskReadError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
 
 def show_all(tasks):
     names = sorted(tasks.keys())
@@ -49,12 +58,18 @@ def show_by_course(tasks):
 
 def show_by_due(tasks):
     dates = set(tasks[name].get('due') for name in tasks)
-    # Note: None can be in this set
+    dates.discard(None)
     dates = sorted(dates)
+
+    print
+    print "No due date:"
+    no_date_tasks = task_filter(tasks, 'due', None)
+    for name in no_date_tasks:
+        print "> %s" % name
 
     for date in dates:
         print
-        print "Due date: %s" % date
+        print "Due %s:" % format_date(date)
         date_tasks = task_filter(tasks, 'due', date)
         for name in date_tasks:
             print "> %s" % name
@@ -63,7 +78,14 @@ def read_tasks(db_root):
     """ Load tasks from db. """
     entry_names = os.listdir(os.path.join(db_root, "entry"))
     entry_paths = {filename: os.path.join(db_root, "entry", filename) for filename in entry_names}
-    tasks = {name: read_task(entry_paths[name]) for name in entry_names}
+    tasks = {}
+    for name in entry_names:
+        try:
+            tasks[name] = read_task(entry_paths[name])
+        except TaskReadError as e:
+            print "%s in task '%s'" % (e.msg, name)
+            print "run `taksman edit %s` to fix the problem." % name
+            sys.exit(-1)
     return tasks
 
 def read_task(filepath):
@@ -79,8 +101,15 @@ def read_task(filepath):
                 field = header_match.group('field')
                 value = header_match.group('value')
                 assert field != 'body'
+                assert field != 'date'
                 assert field not in task
-                task[field] = value.rstrip()
+                if field == 'due':
+                    try:
+                        task[field] = dateutil.parser.parse(value)
+                    except ValueError:
+                        raise TaskReadError("Unreadable due date")
+                else:
+                    task[field] = value.rstrip()
             else:
                 reading_headers = False
                 task['body'] += line.rstrip() + "\n"
@@ -115,15 +144,32 @@ def edit_file(filepath):
     editor = os.environ.get('EDITOR', 'nano')
     subprocess.call([editor, filepath])
 
+def format_date(date):
+    """ Format a pretty human readable date. """
+    # http://stackoverflow.com/questions/6574329/how-can-i-produce-a-human-readable-difference-when-subtracting-two-unix-timestam
+    now = datetime.datetime.now()
+    past = now > date
+    rd = dateutil.relativedelta.relativedelta(date, now)
+    attrs = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
+    human_readable_dt = lambda delta: ['%d %s' % (getattr(delta, attr), getattr(delta, attr) > 1 and attr or attr[:-1]) 
+        for attr in attrs if getattr(delta, attr)]
+    rel = human_readable_dt(rd)[0]
+    day_str = humanize.naturaldate(date).capitalize()
+    if past:
+        return "%s (PAST)" % (day_str)
+    else:
+        return "%s (%s)" % (day_str, rel)
+
 if __name__ == "__main__":
     db_root = "tasks"
     ensure_db(db_root)
-    tasks = read_tasks(db_root)
 
     arguments = docopt(__doc__)
     if arguments['debug']:
+        tasks = read_tasks(db_root)
         pprint(tasks)
     elif arguments['add']:
+        tasks = read_tasks(db_root)
         name = arguments['<entry>']
         if name in tasks:
             print "%s already in tasks" % name
@@ -131,7 +177,13 @@ if __name__ == "__main__":
         filepath = os.path.join(db_root, 'entry', name)
         edit_file(filepath)
         print "%s saved to %s" % (name, filepath)
+    elif arguments['edit']:
+        name = arguments['<entry>']
+        filepath = os.path.join(db_root, 'entry', name)
+        edit_file(filepath)
+        print "changes saved to %s" % filepath
     elif arguments['done']:
+        tasks = read_tasks(db_root)
         name = arguments['<entry>']
         if name not in tasks:
             print "%s not in tasks" % name
@@ -141,10 +193,16 @@ if __name__ == "__main__":
         os.rename(filepath, newpath)
         print "%s archived to %s" % (name, newpath)
     elif arguments['all']:
+        tasks = read_tasks(db_root)
         show_all(tasks)
     elif arguments['course']:
+        tasks = read_tasks(db_root)
         show_by_course(tasks)
     elif arguments['due']:
+        tasks = read_tasks(db_root)
         show_by_due(tasks)
     else:
         print "Whoops, unhandled input."
+        sys.exit(-1)
+
+    sys.exit(0)
