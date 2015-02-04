@@ -4,6 +4,20 @@ import errno
 import re
 from pprint import pprint
 
+def show_by_course(tasks):
+    courses = set(tasks[name].get('course') for name in tasks)
+    courses -= set([None])
+    courses = sorted(courses)
+
+    for course in courses:
+        print
+        print "Course: %s" % course
+        course_tasks = filter(
+            lambda name: tasks[name].get('course') == course,
+            tasks)
+        for name in course_tasks:
+            print "> %s" % name
+
 def read_tasks(db_root):
     """ Load tasks from db. """
     entry_names = os.listdir(os.path.join(db_root, "entry"))
@@ -54,4 +68,5 @@ if __name__ == "__main__":
     db_root = "tasks"
     ensure_db(db_root)
     tasks = read_tasks(db_root)
-    pprint(tasks)
+    # pprint(tasks)
+    show_by_course(tasks)
