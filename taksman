@@ -6,13 +6,14 @@ Usage:
   taksman done <entry>
   taksman all
   taksman course
-  taksman date
+  taksman due
   taksman debug
 
 Examples:
   taksman add 033-reading   create a new task entry
   taksman done <entry>      mark an entry as done
   taksman all               list all tasks entries
+  taksman due               list tasks organized by due date
 
 Options:
   -h, --help
@@ -42,10 +43,20 @@ def show_by_course(tasks):
     for course in courses:
         print
         print "Course: %s" % course
-        course_tasks = filter(
-            lambda name: tasks[name].get('course') == course,
-            tasks)
+        course_tasks = task_filter(tasks, 'course', course)
         for name in course_tasks:
+            print "> %s" % name
+
+def show_by_due(tasks):
+    dates = set(tasks[name].get('due') for name in tasks)
+    # Note: None can be in this set
+    dates = sorted(dates)
+
+    for date in dates:
+        print
+        print "Due date: %s" % date
+        date_tasks = task_filter(tasks, 'due', date)
+        for name in date_tasks:
             print "> %s" % name
 
 def read_tasks(db_root):
@@ -83,6 +94,12 @@ def ensure_db(db_root):
     mkdir_p(os.path.join(db_root, "entry"))
     mkdir_p(os.path.join(db_root, "done"))
     mkdir_p(os.path.join(db_root, "template"))
+
+def task_filter(tasks, key, value):
+    """ Get the tasks for which key = value. """
+    return filter(
+        lambda name: tasks[name].get(key) == value,
+        tasks)
 
 def mkdir_p(path):
     """ no error if existing, make parent directories as needed """
@@ -127,7 +144,7 @@ if __name__ == "__main__":
         show_all(tasks)
     elif arguments['course']:
         show_by_course(tasks)
-    elif arguments['date']:
-        raise Exception("not implemented")
+    elif arguments['due']:
+        show_by_due(tasks)
     else:
         print "Whoops, unhandled input."
