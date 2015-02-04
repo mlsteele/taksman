@@ -3,6 +3,7 @@
 Assignment management tool for school.
 
 # Notes
+```
 directories:
 entry - store entry files
 done - archive done tasks
@@ -13,3 +14,4 @@ all - list all entries
 date - list by day
 course - list by course
 info - show details for task
+```
