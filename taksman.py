@@ -1,8 +1,24 @@
 #!/usr/bin/env python
+""" Assignment management tool for school.
+Usage:
+  taksman.py (-h | --help)
+  taksman.py add <entry>
+  taksman.py course
+  taksman.py date
+  taksman.py debug
+
+Examples:
+  taksman.py add 033-reading
+
+Options:
+  -h, --help
+"""
+
 import os
 import errno
 import re
 from pprint import pprint
+from docopt import docopt
 
 def show_by_course(tasks):
     courses = set(tasks[name].get('course') for name in tasks)
@@ -68,5 +84,15 @@ if __name__ == "__main__":
     db_root = "tasks"
     ensure_db(db_root)
     tasks = read_tasks(db_root)
-    # pprint(tasks)
-    show_by_course(tasks)
+
+    arguments = docopt(__doc__)
+    if arguments['debug']:
+        pprint(tasks)
+    elif arguments['add']:
+        raise Exception("not implemented")
+    elif arguments['course']:
+        show_by_course(tasks)
+    elif arguments['course']:
+        raise Exception("not implemented")
+    else:
+        print "Whoops, unhandled input."
