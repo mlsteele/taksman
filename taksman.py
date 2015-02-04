@@ -3,26 +3,31 @@
 Usage:
   taksman.py (-h | --help)
   taksman.py add <entry>
+  taksman.py done <entry>
   taksman.py course
   taksman.py date
   taksman.py debug
 
 Examples:
-  taksman.py add 033-reading
+  taksman.py add 033-reading   create a new task entry
+  taksman.py done <entry>      mark an entry as done
 
 Options:
   -h, --help
 """
 
+import sys
 import os
 import errno
+import subprocess
 import re
 from pprint import pprint
 from docopt import docopt
 
 def show_by_course(tasks):
     courses = set(tasks[name].get('course') for name in tasks)
-    courses -= set([None])
+    # Note: None can be in this set
+    # courses -= set([None])
     courses = sorted(courses)
 
     for course in courses:
@@ -80,6 +85,10 @@ def mkdir_p(path):
         else:
             raise
 
+def edit_file(filepath):
+    editor = os.environ.get('EDITOR', 'nano')
+    subprocess.call([editor, filepath])
+
 if __name__ == "__main__":
     db_root = "tasks"
     ensure_db(db_root)
@@ -89,10 +98,25 @@ if __name__ == "__main__":
     if arguments['debug']:
         pprint(tasks)
     elif arguments['add']:
-        raise Exception("not implemented")
+        name = arguments['<entry>']
+        if name in tasks:
+            print "%s already in tasks" % name
+            sys.exit(-1)
+        filepath = os.path.join(db_root, 'entry', name)
+        edit_file(filepath)
+        print "%s saved to %s" % (name, filepath)
+    elif arguments['done']:
+        name = arguments['<entry>']
+        if name not in tasks:
+            print "%s not in tasks" % name
+            sys.exit(-1)
+        filepath = os.path.join(db_root, 'entry', name)
+        newpath = os.path.join(db_root, 'done', name)
+        os.rename(filepath, newpath)
+        print "%s archived to %s" % (name, newpath)
     elif arguments['course']:
         show_by_course(tasks)
-    elif arguments['course']:
+    elif arguments['date']:
         raise Exception("not implemented")
     else:
         print "Whoops, unhandled input."
