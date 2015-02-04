@@ -61,7 +61,6 @@ def show_by_due(tasks):
     dates.discard(None)
     dates = sorted(dates)
 
-    print
     print "No due date:"
     no_date_tasks = task_filter(tasks, 'due', None)
     for name in no_date_tasks:
