@@ -25,6 +25,9 @@ import os
 import errno
 import subprocess
 import re
+import shutil
+import inspect
+import filecmp
 import dateutil.parser
 import datetime
 import dateutil.relativedelta
@@ -122,6 +125,20 @@ def ensure_db(db_root):
     mkdir_p(os.path.join(db_root, "entry"))
     mkdir_p(os.path.join(db_root, "done"))
     mkdir_p(os.path.join(db_root, "template"))
+    
+    # add or update template
+    default_template_path = os.path.join(db_root, "template", "default_template") 
+    template_source_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    template_source_path = os.path.join(template_source_dir, "default_template")
+    if not os.path.isfile(template_source_path):
+        print "default_template file missing"
+        sys.exit(-1)
+    if not os.path.isfile(default_template_path): 
+        shutil.copyfile(template_source_path, default_template_path)
+    elif not filecmp.cmp(default_template_path, template_source_path):
+        r = raw_input("Your default template is not the same as mine. Do you want to update yours? [Yn] ")
+        if r.lower() != "n":
+            shutil.copyfile(template_source_path, default_template_path)
 
 def task_filter(tasks, key, value):
     """ Get the tasks for which key = value. """
@@ -161,6 +178,7 @@ def format_date(date):
 
 if __name__ == "__main__":
     db_root = os.path.expanduser("~/.taksman")
+    template = os.path.join(db_root, 'template', "default_template")
     ensure_db(db_root)
 
     arguments = docopt(__doc__)
@@ -174,6 +192,7 @@ if __name__ == "__main__":
             print "%s already in tasks" % name
             sys.exit(-1)
         filepath = os.path.join(db_root, 'entry', name)
+        shutil.copyfile(template, filepath)
         edit_file(filepath)
         print "%s saved to %s" % (name, filepath)
     elif arguments['edit']:
