@@ -47,7 +47,7 @@ def show_all(tasks):
         print "> %s" % name
         body = tasks[name]['body'].strip()
         if body:
-            print "   %s" % body
+            print "   %s" % body.replace("\n", "\n   ")
         for field in tasks[name].keys():
             val = str(tasks[name][field]).strip()
             if field != 'body' and val:
