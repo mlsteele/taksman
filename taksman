@@ -105,6 +105,10 @@ def read_task(filepath):
     with open(filepath, 'r') as f:
         reading_headers = True
         for line in f.readlines():
+            comment_match = re.match(r"\s*#.*", line)
+            blankline_match = re.match(r"\s*$", line)
+            if comment_match or blankline_match:
+                continue
             header_match = re.match(r"(?P<field>\w+): +(?P<value>.*)$", line)
             if reading_headers and header_match:
                 field = header_match.group('field')
