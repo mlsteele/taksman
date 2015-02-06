@@ -8,6 +8,7 @@ Usage:
   taksman all
   taksman course
   taksman due
+  taksman priority
   taksman debug
 
 Examples:
@@ -68,7 +69,7 @@ def show_by_course(tasks):
         print "Course: %s" % course
         course_tasks = task_filter(tasks, 'course', course)
         for name in course_tasks:
-            print "> %s" % name
+            print "> %s" % colored_name(tasks[name], name)
 
 
 def show_by_due(tasks):
@@ -79,14 +80,25 @@ def show_by_due(tasks):
     print "No due date:"
     no_date_tasks = task_filter(tasks, 'due', None)
     for name in no_date_tasks:
-        print "> %s" % name
+        print "> %s" % colored_name(tasks[name], name)
 
     for date in dates:
         print
         print "Due %s:" % format_date(date)
         date_tasks = task_filter(tasks, 'due', date)
         for name in date_tasks:
-            print "> %s" % name
+            print "> %s" % colored_name(tasks[name], name)
+
+
+def show_by_priority(tasks):
+    priorities = sorted(set(tasks[name].get('priority', 3) for name in tasks))
+    for priority in priorities:
+        print "P%d:" % priority
+        p_tasks = task_filter(tasks, 'priority', priority)
+        if priority == 3:
+            p_tasks += task_filter(tasks, 'priority', None)
+        for name in p_tasks:
+            print "> %s" % colored_name(tasks[name], name)
 
 
 def colored_name(task, name):
@@ -260,6 +272,9 @@ if __name__ == "__main__":
     elif arguments['due']:
         tasks = read_tasks(db_root)
         show_by_due(tasks)
+    elif arguments['priority']:
+        tasks = read_tasks(db_root)
+        show_by_priority(tasks)
     else:
         print "Whoops, unhandled input."
         sys.exit(-1)
