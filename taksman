@@ -35,9 +35,11 @@ from pprint import pprint
 from docopt import docopt
 import humanize
 
+
 class TaskReadError(Exception):
     def __init__(self, msg):
         self.msg = msg
+
 
 def show_all(tasks):
     names = sorted(tasks.keys())
@@ -53,6 +55,7 @@ def show_all(tasks):
             if field != 'body' and val:
                 print "   %s: %s" % (field, val)
 
+
 def show_by_course(tasks):
     courses = set(tasks[name].get('course') for name in tasks)
     # Note: None can be in this set
@@ -65,6 +68,7 @@ def show_by_course(tasks):
         course_tasks = task_filter(tasks, 'course', course)
         for name in course_tasks:
             print "> %s" % name
+
 
 def show_by_due(tasks):
     dates = set(tasks[name].get('due') for name in tasks)
@@ -83,6 +87,7 @@ def show_by_due(tasks):
         for name in date_tasks:
             print "> %s" % name
 
+
 def read_tasks(db_root):
     """ Load tasks from db. """
     entry_names = os.listdir(os.path.join(db_root, "entry"))
@@ -96,6 +101,7 @@ def read_tasks(db_root):
             print "run `taksman edit %s` to fix the problem." % name
             sys.exit(-1)
     return tasks
+
 
 def read_task(filepath):
     """ Read a task from a file. """
@@ -131,31 +137,34 @@ def read_task(filepath):
 
     return task
 
+
 def ensure_db(db_root):
     """ Make the storage directories exist. """
     mkdir_p(os.path.join(db_root, "entry"))
     mkdir_p(os.path.join(db_root, "done"))
     mkdir_p(os.path.join(db_root, "template"))
-    
+
     # add or update template
-    default_template_path = os.path.join(db_root, "template", "default_template") 
+    default_template_path = os.path.join(db_root, "template", "default_template")
     template_source_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     template_source_path = os.path.join(template_source_dir, "default_template")
     if not os.path.isfile(template_source_path):
         print "default_template file missing"
         sys.exit(-1)
-    if not os.path.isfile(default_template_path): 
+    if not os.path.isfile(default_template_path):
         shutil.copyfile(template_source_path, default_template_path)
     elif not filecmp.cmp(default_template_path, template_source_path):
         r = raw_input("Your default template is not the same as mine. Do you want to update yours? [Yn] ")
         if r.lower() != "n":
             shutil.copyfile(template_source_path, default_template_path)
 
+
 def task_filter(tasks, key, value):
     """ Get the tasks for which key = value. """
     return filter(
         lambda name: tasks[name].get(key) == value,
         tasks)
+
 
 def mkdir_p(path):
     """ no error if existing, make parent directories as needed """
@@ -167,9 +176,11 @@ def mkdir_p(path):
         else:
             raise
 
+
 def edit_file(filepath):
     editor = os.environ.get('EDITOR', 'nano')
     subprocess.call([editor, filepath])
+
 
 def format_date(date):
     """ Format a pretty human readable date. """
@@ -178,7 +189,8 @@ def format_date(date):
     past = now > date
     rd = dateutil.relativedelta.relativedelta(date, now)
     attrs = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
-    human_readable_dt = lambda delta: ['%d %s' % (getattr(delta, attr), getattr(delta, attr) > 1 and attr or attr[:-1]) 
+    human_readable_dt = lambda delta: [
+        '%d %s' % (getattr(delta, attr), getattr(delta, attr) > 1 and attr or attr[:-1])
         for attr in attrs if getattr(delta, attr)]
     rel = human_readable_dt(rd)[0]
     day_str = humanize.naturaldate(date).capitalize()
@@ -186,6 +198,7 @@ def format_date(date):
         return "%s (PAST)" % (day_str)
     else:
         return "%s (%s)" % (day_str, rel)
+
 
 if __name__ == "__main__":
     db_root = os.path.expanduser("~/.taksman")
