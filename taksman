@@ -33,6 +33,7 @@ import datetime
 import dateutil.relativedelta
 from pprint import pprint
 from docopt import docopt
+from termcolor import colored
 import humanize
 
 
@@ -46,13 +47,13 @@ def show_all(tasks):
 
     print "All tasks:"
     for name in names:
-        print "> %s" % name
+        print "> %s" % colored_name(tasks[name], name)
         body = tasks[name]['body'].strip()
         if body:
             print "   %s" % body.replace("\n", "\n   ")
         for field in tasks[name].keys():
             val = str(tasks[name][field]).strip()
-            if field != 'body' and val:
+            if field != 'body' and field != 'priority' and val:
                 print "   %s: %s" % (field, val)
 
 
@@ -88,6 +89,16 @@ def show_by_due(tasks):
             print "> %s" % name
 
 
+def colored_name(task, name):
+    color = {
+        0: 'red',
+        1: 'blue',
+        2: 'cyan',
+        3: 'white'
+    }.get(task.get('priority', 3), 'white')
+    return colored(name, color)
+
+
 def read_tasks(db_root):
     """ Load tasks from db. """
     entry_names = os.listdir(os.path.join(db_root, "entry"))
@@ -113,25 +124,31 @@ def read_task(filepath):
         for line in f.readlines():
             comment_match = re.match(r"\s*#.*", line)
             blankline_match = re.match(r"\s*$", line)
-            if comment_match or blankline_match:
+            if comment_match or (reading_headers and blankline_match):
                 continue
             header_match = re.match(r"(?P<field>\w+): +(?P<value>.*)$", line)
             if reading_headers and header_match:
-                field = header_match.group('field')
-                value = header_match.group('value')
+                field = header_match.group('field').strip()
+                value = header_match.group('value').strip()
                 assert field != 'body'
                 assert field != 'date'
                 assert field not in task
-                if field == 'due':
-                    try:
-                        task[field] = dateutil.parser.parse(value)
-                    except ValueError:
-                        raise TaskReadError("Unreadable due date")
-                else:
-                    task[field] = value.rstrip()
+                if value:
+                    if field == 'due':
+                        try:
+                            task[field] = dateutil.parser.parse(value)
+                        except ValueError:
+                            raise TaskReadError("Unreadable due date")
+                    elif field == 'priority':
+                        try:
+                            task[field] = int(value)
+                        except ValueError:
+                            raise TaskReadError("Non-numerical priority %s" % value)
+                    else:
+                        task[field] = value
             else:
                 reading_headers = False
-                task['body'] += line.rstrip() + "\n"
+                task['body'] += line + "\n"
 
     task['body'] = task['body'].rstrip()
 
