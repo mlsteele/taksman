@@ -45,6 +45,13 @@ def show_all(tasks):
     print "All tasks:"
     for name in names:
         print "> %s" % name
+        body = tasks[name]['body'].strip()
+        if body:
+            print "   %s" % body
+        for field in tasks[name].keys():
+            val = str(tasks[name][field]).strip()
+            if field != 'body' and val:
+                print "   %s: %s" % (field, val)
 
 def show_by_course(tasks):
     courses = set(tasks[name].get('course') for name in tasks)
