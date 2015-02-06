@@ -14,4 +14,8 @@ all - list all entries
 date - list by day
 course - list by course
 info - show details for task
+
+supported fields in task files:
+due - the due date
+course - the course/project to which the task belongs
 ```
