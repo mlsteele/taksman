@@ -53,8 +53,10 @@ def show_all(tasks):
         if body:
             print "   %s" % body.replace("\n", "\n   ")
         for field in tasks[name].keys():
-            val = str(tasks[name][field]).strip()
+            val = tasks[name][field]
             if field != 'body' and field != 'priority' and val:
+                if field == 'due':
+                    val = format_date(val)
                 print "   %s: %s" % (field, val)
 
 
