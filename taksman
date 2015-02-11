@@ -214,26 +214,7 @@ def edit_file(filepath):
 
 
 def format_date(date):
-    """ Format a pretty human readable date. """
-    # http://stackoverflow.com/questions/6574329/how-can-i-produce-a-human-readable-difference-when-subtracting-two-unix-timestam
     now = datetime.datetime.now()
-    past = now > date
-    rd = dateutil.relativedelta.relativedelta(date, now)
-    attrs = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
-    human_readable_dt = lambda delta: [
-        '%d %s' % (getattr(delta, attr), getattr(delta, attr) > 1 and attr or attr[:-1])
-        for attr in attrs if getattr(delta, attr)]
-    rel = human_readable_dt(rd)[0]
-    day_str = humanize.naturaldate(date).capitalize()
-    if past:
-        return "%s (PAST)" % (day_str)
-    else:
-        return "%s (%s)" % (day_str, rel)
-
-
-def format_date(date):
-    now = datetime.datetime.now()
-    past = now > date
     rd = dateutil.relativedelta.relativedelta(date, now)
     day_str = humanize.naturaldate(date).capitalize()
     if day_str not in ['Today','Tomorrow','Yesterday']:
