@@ -2,6 +2,11 @@
 
 Assignment management tool for school.
 
+## Setup
+Enable autocompletion by copying completion.bash or completion.zsh into your bashrc or zshrc.
+
+This requires that you add taksman to your PATH (so you call `taksman` and not `./taksman`)
+
 # Notes
 ```
 directories:
