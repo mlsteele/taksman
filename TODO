@@ -1,4 +1,5 @@
 # Todo
 - better readme
-- maybe default behavior to `due`
+- `taksman all` should sort somehow
 - pip (https://packaging.python.org/en/latest/distributing.html)
+- show body text in `due` and `priority` view, show `due` in `priority` view
