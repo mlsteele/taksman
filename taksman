@@ -8,6 +8,7 @@ Usage:
   taksman all
   taksman course
   taksman due
+  taksman do
   taksman priority
   taksman debug
 
@@ -75,19 +76,23 @@ def show_by_course(tasks):
 
 
 def show_by_due(tasks):
-    dates = set(tasks[name].get('due') for name in tasks)
+    show_by_date(tasks, 'due')
+
+
+def show_by_date(tasks, field):
+    dates = set(tasks[name].get(field) for name in tasks)
     dates.discard(None)
     dates = sorted(dates)
 
-    print "No due date:"
-    no_date_tasks = task_filter(tasks, 'due', None)
+    print "No " + field + " date:"
+    no_date_tasks = task_filter(tasks, field, None)
     for name in no_date_tasks:
         print "> %s" % colored_name(tasks[name], name)
 
     for date in dates:
         print
-        print "Due %s:" % format_date(date)
-        date_tasks = task_filter(tasks, 'due', date)
+        print "%s %s:" % (field.capitalize(), format_date(date))
+        date_tasks = task_filter(tasks, field, date)
         for name in date_tasks:
             print "> %s" % colored_name(tasks[name], name)
 
@@ -148,7 +153,7 @@ def read_task(filepath):
                 assert field != 'date'
                 assert field not in task
                 if value:
-                    if field == 'due':
+                    if field == 'due' or field == 'do':
                         try:
                             task[field] = dateutil.parser.parse(value)
                         except ValueError:
@@ -275,6 +280,9 @@ if __name__ == "__main__":
     elif arguments['priority']:
         tasks = read_tasks(db_root)
         show_by_priority(tasks)
+    elif arguments['do']:
+        tasks = read_tasks(db_root)
+        show_by_date(tasks, 'do')
     else:
         print "Whoops, unhandled input."
         sys.exit(-1)
