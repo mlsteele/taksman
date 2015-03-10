@@ -68,11 +68,11 @@ def show_by_course(tasks):
     courses = sorted(courses)
 
     for course in courses:
-        print
         print "Course: %s" % course
         course_tasks = task_filter(tasks, 'course', course)
         for name in course_tasks:
             print "> %s" % colored_name(tasks[name], name)
+        print
 
 
 def show_by_due(tasks):
@@ -82,19 +82,20 @@ def show_by_due(tasks):
 def show_by_date(tasks, field):
     dates = set(tasks[name].get(field) for name in tasks)
     dates.discard(None)
-    dates = sorted(dates)
-
-    print "No " + field + " date:"
-    no_date_tasks = task_filter(tasks, field, None)
-    for name in no_date_tasks:
-        print "> %s" % colored_name(tasks[name], name)
+    dates = [None] + sorted(dates)
 
     for date in dates:
-        print
-        print "%s %s:" % (field.capitalize(), format_date(date))
         date_tasks = task_filter(tasks, field, date)
+        if not len(date_tasks):
+            continue
+
+        if date != None:
+            print "%s %s:" % (field.capitalize(), format_date(date))
+        else:
+            print "No %s date:" % (field)
         for name in date_tasks:
             print "> %s" % colored_name(tasks[name], name)
+        print
 
 
 def show_by_priority(tasks):
