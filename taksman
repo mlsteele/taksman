@@ -223,16 +223,18 @@ def format_date(date):
     now = datetime.datetime.now()
     rd = dateutil.relativedelta.relativedelta(date, now)
     day_str = humanize.naturaldate(date).capitalize()
-    if day_str not in ['Today','Tomorrow','Yesterday']:
+    if day_str in ['Today','Tomorrow','Yesterday']:
+        return day_str
+    else:
         weekday = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][
                 date.weekday()]
         day_str = weekday + ", " + day_str
         if now > date:
             return "%s (PAST)" % day_str
-        else:
+        elif rd.months == 0:
             return "%s (%d days)" % (day_str, rd.days+1)
-    else:
-        return day_str
+        else:
+            return day_str
 
 
 if __name__ == "__main__":
