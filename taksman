@@ -52,7 +52,7 @@ def show_all(tasks):
         print "> %s" % colored_name(tasks[name], name)
         body = tasks[name]['body'].strip()
         if body:
-            print "   %s" % body.replace("\n", "\n   ")
+            print "   %s\n" % body.replace("\n", "\n   "),
         for field in tasks[name].keys():
             val = tasks[name][field]
             if field != 'body' and field != 'priority' and val:
@@ -146,7 +146,7 @@ def read_task(filepath):
             blankline_match = re.match(r"\s*$", line)
             if comment_match or (reading_headers and blankline_match):
                 continue
-            header_match = re.match(r"(?P<field>\w+): +(?P<value>.*)$", line)
+            header_match = re.match(r"(?P<field>\w+): *(?P<value>.*)$", line)
             if reading_headers and header_match:
                 field = header_match.group('field').strip()
                 value = header_match.group('value').strip()
@@ -168,7 +168,7 @@ def read_task(filepath):
                         task[field] = value
             else:
                 reading_headers = False
-                task['body'] += line + "\n"
+                task['body'] += line
 
     task['body'] = task['body'].rstrip()
 
