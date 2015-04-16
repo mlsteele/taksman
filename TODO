@@ -3,3 +3,5 @@
 - `taksman all` should sort somehow
 - pip (https://packaging.python.org/en/latest/distributing.html)
 - show body text in `due` and `priority` view, show `due` in `priority` view
+- add handling of keywords like "tomorrow" "next week" etc
+- add notification capabilities
