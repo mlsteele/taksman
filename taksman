@@ -126,6 +126,7 @@ def read_tasks(db_root):
     tasks = {}
     for name in entry_names:
         try:
+            print name
             tasks[name] = read_task(entry_paths[name])
         except TaskReadError as e:
             print "%s in task '%s'" % (e.msg, name)
@@ -157,8 +158,8 @@ def read_task(filepath):
                     if field == 'due' or field == 'do':
                         try:
                             task[field] = dateutil.parser.parse(value)
-                        except ValueError:
-                            raise TaskReadError("Unreadable due date")
+                        except (ValueError,TypeError):
+                            raise TaskReadError("Unreadable due/do date")
                     elif field == 'priority':
                         try:
                             task[field] = int(value)
@@ -258,9 +259,15 @@ if __name__ == "__main__":
         print "%s saved to %s" % (name, filepath)
     elif arguments['edit']:
         name = arguments['<entry>']
+        entry_names = os.listdir(os.path.join(db_root, "entry"))
         filepath = os.path.join(db_root, 'entry', name)
-        edit_file(filepath)
-        print "changes saved to %s" % filepath
+        if (name not in entry_names):
+            shutil.copyfile(template,filepath)
+            edit_file(filepath)
+            print "%s saved to %s" % (name,filepath)
+        else:
+            edit_file(filepath)
+            print "changes saved to %s" % filepath
     elif arguments['done']:
         tasks = read_tasks(db_root)
         name = arguments['<entry>']
