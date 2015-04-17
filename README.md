@@ -4,13 +4,21 @@ Assignment management tool for school.
 
 ## Setup
 
+    $ git clone git://github.com/mlsteele/taksman.git ~/.taksman
+
+Add taksman to your `PATH`
+
+    $ echo "export PATH=\$HOME/.taksman:\$PATH"
+
 Install the requirements with
 
     $ pip install -r requirements.txt
 
-Enable autocompletion by copying completion.bash or completion.zsh into your bashrc or zshrc.
+Enable autocompletion by sourcing completion.bash or completion.zsh into your bashrc or zshrc.
 
-This requires that you add taksman to your PATH (so you call `taksman` and not `./taksman`)
+    $ echo "source ~/.taksman/completion.bash" >> ~/.bashrc
+
+    $ echo "source ~/.taksman/completion.zsh" >> ~/.zshrc
 
 # Notes
 ```
